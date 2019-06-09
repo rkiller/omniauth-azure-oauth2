@@ -19,7 +19,7 @@ module OmniAuth
 
       option :version, 'v2.0/'
 
-      option :scope, 'https://graph.windows.net/user.read.all, https://graph.windows.net/directory.read.all'
+      option :scope, 'https://graph.windows.net/user.read, https://graph.windows.net/directory.read'
 
       def client
         if options.tenant_provider
