@@ -74,10 +74,6 @@ module OmniAuth
         @raw_info ||= ::JWT.decode(access_token.token, nil, false).first
       end
 
-      #def chain_scopes(arr)
-      #  arr.inject("") {|str,s| str += SCOPE_AZURE_URL + (s.equal?(scopes.last) ? "#{s}" : "#{s} " )}
-      #end
-
     end
   end
 end
