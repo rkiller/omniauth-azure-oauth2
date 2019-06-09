@@ -12,7 +12,7 @@ module OmniAuth
       # AD resource identifier
       #option :resource, '00000002-0000-0000-c000-000000000000'
       option :version, 'v2.0/'
-      option :scope, 'https://graph.windows.net/user.read https://graph.windows.net/directory.read.all'
+      option :scope, 'https://graph.windows.net/identityprovider.read.all https://graph.windows.net/user.read https://graph.windows.net/directory.read.all'
 
       # tenant_provider must return client_id, client_secret and optionally tenant_id and base_azure_url
       args [:tenant_provider]
