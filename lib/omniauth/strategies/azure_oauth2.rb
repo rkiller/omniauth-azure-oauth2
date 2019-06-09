@@ -5,6 +5,7 @@ module OmniAuth
   module Strategies
     class AzureOauth2 < OmniAuth::Strategies::OAuth2
       BASE_AZURE_URL = 'https://login.microsoftonline.com'
+      SCOPE_AZURE_URL = 'https://graph.windows.net/'
 
       option :name, 'azure_oauth2'
 
@@ -17,6 +18,8 @@ module OmniAuth
       args [:tenant_provider]
 
       option :version, 'v2.0/'
+
+      option :scope, chain_scopes(%(User.Read.All Directory.Read.All))
 
       def client
         if options.tenant_provider
@@ -71,6 +74,12 @@ module OmniAuth
       def raw_info
         # it's all here in JWT http://msdn.microsoft.com/en-us/library/azure/dn195587.aspx
         @raw_info ||= ::JWT.decode(access_token.token, nil, false).first
+      end
+
+      private
+
+      def chain_scopes(arr)
+        arr.inject("") {|str,s| str += SCOPE_AZURE_URL + (s.equal?(scopes.last) ? "#{s}" : "#{s} " )}
       end
 
     end
