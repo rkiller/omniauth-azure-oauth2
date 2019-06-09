@@ -4,22 +4,18 @@ require 'jwt'
 module OmniAuth
   module Strategies
     class AzureOauth2 < OmniAuth::Strategies::OAuth2
+      
       BASE_AZURE_URL = 'https://login.microsoftonline.com'
-      SCOPE_AZURE_URL = 'https://graph.windows.net/'
 
       option :name, 'azure_oauth2'
-
       option :tenant_provider, nil
-
       # AD resource identifier
-      option :resource, '00000002-0000-0000-c000-000000000000'
+      #option :resource, '00000002-0000-0000-c000-000000000000'
+      option :version, 'v2.0/'
+      option :scope, 'https://graph.windows.net/user.read https://graph.windows.net/directory.read.all'
 
       # tenant_provider must return client_id, client_secret and optionally tenant_id and base_azure_url
       args [:tenant_provider]
-
-      option :version, 'v2.0/'
-
-      option :scope, 'https://graph.windows.net/user.read https://graph.windows.net/directory.read.all'
 
       def client
         if options.tenant_provider
@@ -62,10 +58,10 @@ module OmniAuth
         }
       end
 
-      def token_params
-        azure_resource = request.env['omniauth.params'] && request.env['omniauth.params']['azure_resource']
-        super.merge(resource: azure_resource || options.resource)
-      end
+      #def token_params
+      #  azure_resource = request.env['omniauth.params'] && request.env['omniauth.params']['azure_resource']
+      #  super.merge(resource: azure_resource || options.resource)
+      #end
 
       def callback_url
         full_host + script_name + callback_path
