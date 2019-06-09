@@ -19,7 +19,7 @@ module OmniAuth
 
       option :version, 'v2.0/'
 
-      option :scope, %w(User.Read.All Directory.Read.All)
+      option :scope, 'User.Read.All, Directory.Read.All'
 
       def client
         if options.tenant_provider
