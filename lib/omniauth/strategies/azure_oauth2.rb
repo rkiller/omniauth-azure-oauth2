@@ -16,6 +16,8 @@ module OmniAuth
       # tenant_provider must return client_id, client_secret and optionally tenant_id and base_azure_url
       args [:tenant_provider]
 
+      option :version, 'v2.0/'
+
       def client
         if options.tenant_provider
           provider = options.tenant_provider.new(self)
@@ -33,8 +35,8 @@ module OmniAuth
         options.authorize_params = provider.authorize_params if provider.respond_to?(:authorize_params)
         options.authorize_params.domain_hint = provider.domain_hint if provider.respond_to?(:domain_hint) && provider.domain_hint
         options.authorize_params.prompt = request.params['prompt'] if defined? request && request.params['prompt']
-        options.client_options.authorize_url = "#{options.base_azure_url}/#{options.tenant_id}/oauth2/authorize"
-        options.client_options.token_url = "#{options.base_azure_url}/#{options.tenant_id}/oauth2/token"
+        options.client_options.authorize_url = "#{options.base_azure_url}/#{options.tenant_id}/oauth2/#{options.version}authorize"
+        options.client_options.token_url = "#{options.base_azure_url}/#{options.tenant_id}/oauth2/#{options.version}token"
         super
       end
 
