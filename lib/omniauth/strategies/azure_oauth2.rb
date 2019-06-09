@@ -54,14 +54,16 @@ module OmniAuth
           oid: raw_info['oid'],
           tid: raw_info['tid'],
           aud: raw_info['aud'],
+          roles: raw_info['roles'],
           groups: raw_info['groups']
         }
       end
 
-      #def token_params
+      def token_params
       #  azure_resource = request.env['omniauth.params'] && request.env['omniauth.params']['azure_resource']
       #  super.merge(resource: azure_resource || options.resource)
-      #end
+        super.merge(response_type: "id_token")
+      end
 
       def callback_url
         full_host + script_name + callback_path
