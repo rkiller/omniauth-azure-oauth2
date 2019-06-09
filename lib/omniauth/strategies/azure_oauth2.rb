@@ -19,7 +19,7 @@ module OmniAuth
 
       option :version, 'v2.0/'
 
-      option :scope, chain_scopes(%w(User.Read.All Directory.Read.All))
+      option :scope, %w(User.Read.All Directory.Read.All)
 
       def client
         if options.tenant_provider
@@ -76,9 +76,9 @@ module OmniAuth
         @raw_info ||= ::JWT.decode(access_token.token, nil, false).first
       end
 
-      def chain_scopes(arr)
-        arr.inject("") {|str,s| str += SCOPE_AZURE_URL + (s.equal?(scopes.last) ? "#{s}" : "#{s} " )}
-      end
+      #def chain_scopes(arr)
+      #  arr.inject("") {|str,s| str += SCOPE_AZURE_URL + (s.equal?(scopes.last) ? "#{s}" : "#{s} " )}
+      #end
 
     end
   end
