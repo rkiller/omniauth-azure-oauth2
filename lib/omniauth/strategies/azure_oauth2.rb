@@ -1,5 +1,7 @@
 require 'omniauth/strategies/oauth2'
 require 'jwt'
+require 'openssl'
+require 'securerandom'
 
 module OmniAuth
   module Strategies
@@ -14,6 +16,7 @@ module OmniAuth
       option :version, 'v2.0/'
       option :scope, 'openid email profile' # 'https://graph.windows.net/user.read'
       option :response_type, 'id_token'
+      option :provider_ignores_state, true # Needs to be set to true then check for nonce
       option :nonce, nil
 
       # tenant_provider must return client_id, client_secret and optionally tenant_id and base_azure_url
@@ -70,9 +73,74 @@ module OmniAuth
         @raw_info ||= ::JWT.decode(access_token.token, nil, false).first
       end
 
+      def callback_phase
+        error = request.params['error_reason'] || request.params['error']
+        fail(OAuthError, error) if error
+        @session_state = request.params['session_state']
+        @id_token = request.params['id_token']
+        @code = request.params['code']
+        @claims, @header = validate_and_parse_id_token(@id_token)
+        validate_chash(@code, @claims, @header)
+        super
+      end
+
+      # Verifies the signature of the id token as well as the exp, nbf, iat,
+      # iss, and aud fields.
+      #
+      # See OpenId Connect Core 3.1.3.7 and 3.2.2.11.
+      #
+      # @return Claims, Header
+      def validate_and_parse_id_token(id_token)
+        # The second parameter is the public key to verify the signature.
+        # However, that key is overridden by the value of the executed block
+        # if one is present.
+        #
+        # If you're thinking that this looks ugly with the raw nil and boolean,
+        # see https://github.com/jwt/ruby-jwt/issues/59.
+        jwt_claims, jwt_header =
+          JWT.decode(id_token, nil, true, verify_options) do |header|
+            # There should always be one key from the discovery endpoint that
+            # matches the id in the JWT header.
+            x5c = (signing_keys.find do |key|
+              key['kid'] == header['kid']
+            end || {})['x5c']
+            if x5c.nil? || x5c.empty?
+              fail JWT::VerificationError,
+                   'No keys from key endpoint match the id token'
+            end
+            # The key also contains other fields, such as n and e, that are
+            # redundant. x5c is sufficient to verify the id token.
+            OpenSSL::X509::Certificate.new(JWT.base64url_decode(x5c.first)).public_key
+          end
+        return jwt_claims, jwt_header if jwt_claims['nonce'] == read_nonce
+        fail JWT::DecodeError, 'Returned nonce did not match.'
+      end
+
+      ##
+      # Verifies that the c_hash the id token claims matches the authorization
+      # code. See OpenId Connect Core 3.3.2.11.
+      #
+      # @param String code
+      # @param Hash claims
+      # @param Hash header
+      def validate_chash(code, claims, header)
+        # This maps RS256 -> sha256, ES384 -> sha384, etc.
+        algorithm = (header['alg'] || 'RS256').sub(/RS|ES|HS/, 'sha')
+        full_hash = OpenSSL::Digest.new(algorithm).digest code
+        c_hash = JWT.base64url_encode full_hash[0..full_hash.length / 2 - 1]
+        return if c_hash == claims['c_hash']
+        fail JWT::VerificationError,
+             'c_hash in id token does not match auth code.'
+      end
+
       def new_nonce
         session['azure_oauth2.nonce'] = SecureRandom.uuid
       end
+
+      def read_nonce
+        session.delete('azure_oauth2.nonce')
+      end
+
 
     end
   end
