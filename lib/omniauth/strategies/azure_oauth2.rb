@@ -11,7 +11,7 @@ module OmniAuth
       option :tenant_provider, nil
       # AD resource identifier
       option :resource, '00000002-0000-0000-c000-000000000000'
-      option :version, '', #'v2.0/'
+      option :version, '' #'v2.0/'
       option :scope, 'https://graph.windows.net/user.read' # 'openid email profile'
       #option :response_type, 'id_token'
       #option :nonce, nil
