@@ -14,6 +14,7 @@ module OmniAuth
       option :version, 'v2.0/'
       option :scope, 'openid email profile' # 'https://graph.windows.net/user.read'
       option :response_type, 'id_token'
+      option :nonce, nil
 
       # tenant_provider must return client_id, client_secret and optionally tenant_id and base_azure_url
       args [:tenant_provider]
@@ -30,6 +31,7 @@ module OmniAuth
         options.authorize_params.domain_hint    = provider.domain_hint if provider.respond_to?(:domain_hint) && provider.domain_hint
         options.authorize_params.prompt         = request.params['prompt'] if defined? request && request.params['prompt']
         options.authorize_params.scope          = provider.scope if provider.respond_to?(:scope) && provider.scope
+        options.authorize_params.nonce          = new_nonce
         options.client_options.authorize_url    = "#{options.base_azure_url}/#{options.tenant_id}/oauth2/#{options.version}authorize"
         options.client_options.token_url        = "#{options.base_azure_url}/#{options.tenant_id}/oauth2/#{options.version}token"
         super
@@ -66,6 +68,10 @@ module OmniAuth
       def raw_info
         # it's all here in JWT http://msdn.microsoft.com/en-us/library/azure/dn195587.aspx
         @raw_info ||= ::JWT.decode(access_token.token, nil, false).first
+      end
+
+      def new_nonce
+        session['azure_oauth2.nonce'] = SecureRandom.uuid
       end
 
     end
