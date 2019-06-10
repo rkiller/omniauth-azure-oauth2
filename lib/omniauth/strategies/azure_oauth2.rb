@@ -12,7 +12,7 @@ module OmniAuth
       # AD resource identifier
       #option :resource, '00000002-0000-0000-c000-000000000000'
       option :version, 'v2.0/'
-      option :scope, 'https://graph.windows.net/user.read'
+      option :scope, 'openid email profile' # 'https://graph.windows.net/user.read'
       option :response_type, 'id_token'
 
       # tenant_provider must return client_id, client_secret and optionally tenant_id and base_azure_url
