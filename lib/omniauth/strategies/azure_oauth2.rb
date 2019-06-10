@@ -12,33 +12,26 @@ module OmniAuth
       # AD resource identifier
       #option :resource, '00000002-0000-0000-c000-000000000000'
       option :version, 'v2.0/'
-      option :scope, 'email profile https://graph.windows.net/user.read'
+      option :scope, 'https://graph.windows.net/user.read'
       option :response_type, 'id_token'
 
       # tenant_provider must return client_id, client_secret and optionally tenant_id and base_azure_url
       args [:tenant_provider]
 
       def client
-        if options.tenant_provider
-          provider = options.tenant_provider.new(self)
-        else
-          provider = options  # if pass has to config, get mapped right on to options
-        end
+        provider = options.tenant_provider ? options.tenant_provider.new(self) : provider = options  # if pass has to config, get mapped right on to options
 
-        options.client_id = provider.client_id
-        options.client_secret = provider.client_secret
-        options.tenant_id =
-          provider.respond_to?(:tenant_id) ? provider.tenant_id : 'common'
-        options.base_azure_url =
-          provider.respond_to?(:base_azure_url) ? provider.base_azure_url : BASE_AZURE_URL
-
-        options.authorize_params = provider.authorize_params if provider.respond_to?(:authorize_params)
-        options.authorize_params.response_type = provider.response_type if provider.respond_to?(:response_type) && provider.response_type
-        options.authorize_params.domain_hint = provider.domain_hint if provider.respond_to?(:domain_hint) && provider.domain_hint
-        options.authorize_params.prompt = request.params['prompt'] if defined? request && request.params['prompt']
-        options.authorize_params.scope = provider.scope if provider.respond_to?(:scope) && provider.scope
-        options.client_options.authorize_url = "#{options.base_azure_url}/#{options.tenant_id}/oauth2/#{options.version}authorize"
-        options.client_options.token_url = "#{options.base_azure_url}/#{options.tenant_id}/oauth2/#{options.version}token"
+        options.client_id                       = provider.client_id
+        options.client_secret                   = provider.client_secret
+        options.tenant_id                       = provider.respond_to?(:tenant_id) ? provider.tenant_id : 'common'
+        options.base_azure_url                  = provider.respond_to?(:base_azure_url) ? provider.base_azure_url : BASE_AZURE_URL
+        options.authorize_params                = provider.authorize_params if provider.respond_to?(:authorize_params)
+        options.authorize_params.response_type  = provider.response_type if provider.respond_to?(:response_type) && provider.response_type
+        options.authorize_params.domain_hint    = provider.domain_hint if provider.respond_to?(:domain_hint) && provider.domain_hint
+        options.authorize_params.prompt         = request.params['prompt'] if defined? request && request.params['prompt']
+        options.authorize_params.scope          = provider.scope if provider.respond_to?(:scope) && provider.scope
+        options.client_options.authorize_url    = "#{options.base_azure_url}/#{options.tenant_id}/oauth2/#{options.version}authorize"
+        options.client_options.token_url        = "#{options.base_azure_url}/#{options.tenant_id}/oauth2/#{options.version}token"
         super
       end
 
